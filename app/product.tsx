@@ -1,105 +1,205 @@
-import { View, Text, TextInput, Pressable, FlatList, StyleSheet } from 'react-native';
+import {
+  View, Text, TextInput, Pressable, FlatList, StyleSheet
+} from 'react-native';
 import { useState } from 'react';
-import { useRouter } from 'expo-router';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 
-export default function ProductCRUD() {
-  const router = useRouter();
+export default function ProductosUltra() {
 
-  // Estados para el producto
-  const [nombreProducto, setNombreProducto] = useState('');
+  const [nombre, setNombre] = useState('');
+  const [tipo, setTipo] = useState('');
+  const [stock, setStock] = useState('');
   const [precio, setPrecio] = useState('');
-  const [productos, setProductos] = useState<{id: string, nombre: string, precio: string}[]>([]);
+  const [productos, setProductos] = useState([]);
+  const [editandoId, setEditandoId] = useState(null);
 
-  // Función para agregar (Create)
-  const agregarProducto = () => {
-    if (nombreProducto.trim() && precio.trim()) {
+  const guardar = () => {
+    if (!nombre || !tipo || !stock || !precio) {
+      alert("Completa todos los campos");
+      return;
+    }
+
+    if (editandoId) {
+      const actualizados = productos.map(p =>
+        p.id === editandoId ? { ...p, nombre, tipo, stock, precio } : p
+      );
+      setProductos(actualizados);
+      setEditandoId(null);
+    } else {
       const nuevo = {
         id: Date.now().toString(),
-        nombre: nombreProducto,
-        precio: precio
+        nombre,
+        tipo,
+        stock,
+        precio
       };
-      setProductos([...productos, nuevo]);
-      setNombreProducto(''); // Limpiar campos
-      setPrecio('');
+      setProductos([nuevo, ...productos]);
     }
+
+    setNombre('');
+    setTipo('');
+    setStock('');
+    setPrecio('');
   };
 
-  // Función para eliminar (Delete)
-  const eliminarProducto = (id: string) => {
+  const eliminar = (id) => {
     setProductos(productos.filter(p => p.id !== id));
+  };
+
+  const editar = (p) => {
+    setNombre(p.nombre);
+    setTipo(p.tipo);
+    setStock(p.stock);
+    setPrecio(p.precio);
+    setEditandoId(p.id);
   };
 
   return (
     <View style={styles.container}>
-      {/* Botón para volver al index */}
-      <Pressable onPress={() => router.back()} style={styles.backButton}>
-        <Text style={styles.backText}>← Volver</Text>
-      </Pressable>
 
-      <View style={styles.card}>
-        <Text style={styles.title}>Gestión de Productos</Text>
+      <Text style={styles.title}>🍷 Panel Profesional</Text>
 
-        <TextInput
-          style={styles.input}
-          placeholder="Nombre del producto"
-          value={nombreProducto}
-          onChangeText={setNombreProducto}
-        />
+      {/* FORM ANIMADO */}
+      <Animated.View entering={FadeInDown.duration(600)} style={styles.form}>
+        <TextInput placeholder="Nombre" value={nombre} onChangeText={setNombre} style={styles.input}/>
+        <TextInput placeholder="Tipo" value={tipo} onChangeText={setTipo} style={styles.input}/>
+        <TextInput placeholder="Stock" value={stock} onChangeText={setStock} keyboardType="numeric" style={styles.input}/>
+        <TextInput placeholder="Precio" value={precio} onChangeText={setPrecio} keyboardType="numeric" style={styles.input}/>
 
-        <TextInput
-          style={styles.input}
-          placeholder="Precio"
-          value={precio}
-          onChangeText={setPrecio}
-          keyboardType="numeric"
-        />
-
-        <Pressable style={styles.button} onPress={agregarProducto}>
-          <Text style={styles.buttonText}>Guardar Producto</Text>
+        <Pressable style={styles.btnGuardar} onPress={guardar}>
+          <Text style={styles.btnText}>
+            {editandoId ? "Actualizar" : "Guardar"}
+          </Text>
         </Pressable>
+      </Animated.View>
 
-        <Text style={styles.subtitle}>Inventario:</Text>
+      {/* HEADER TABLA */}
+      <View style={styles.tableHeader}>
+        <Text style={styles.th}>Nombre</Text>
+        <Text style={styles.th}>Tipo</Text>
+        <Text style={styles.th}>Stock</Text>
+        <Text style={styles.th}>Precio</Text>
+        <Text style={styles.th}>Acciones</Text>
+      </View>
 
-        <FlatList
-          data={productos}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <View style={styles.item}>
-              <View>
-                <Text style={styles.itemName}>{item.nombre}</Text>
-                <Text style={styles.itemPrice}>${item.precio}</Text>
-              </View>
-              <Pressable onPress={() => eliminarProducto(item.id)}>
-                <Text style={styles.deleteText}>Eliminar</Text>
+      {/* LISTA ANIMADA */}
+      <FlatList
+        data={productos}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item, index }) => (
+          <Animated.View
+            entering={FadeInDown.delay(index * 100)}
+            style={styles.row}
+          >
+            <Text style={styles.td}>{item.nombre}</Text>
+            <Text style={styles.td}>{item.tipo}</Text>
+            <Text style={styles.td}>{item.stock}</Text>
+            <Text style={styles.td}>S/ {item.precio}</Text>
+
+            <View style={styles.actions}>
+              <Pressable style={styles.edit} onPress={() => editar(item)}>
+                <Text style={styles.actionText}>✏️</Text>
+              </Pressable>
+
+              <Pressable style={styles.delete} onPress={() => eliminar(item.id)}>
+                <Text style={styles.actionText}>🗑</Text>
               </Pressable>
             </View>
-          )}
-          ListEmptyComponent={<Text style={{textAlign: 'center', color: '#999'}}>No hay productos</Text>}
-        />
-      </View>
+          </Animated.View>
+        )}
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f2f2f2', padding: 20, paddingTop: 50 },
-  backButton: { marginBottom: 10 },
-  backText: { color: '#2196F3', fontSize: 16, fontWeight: 'bold' },
-  card: { backgroundColor: 'white', padding: 20, borderRadius: 12, elevation: 3, flex: 1 },
-  title: { fontSize: 22, fontWeight: 'bold', textAlign: 'center', marginBottom: 20 },
-  subtitle: { fontSize: 16, fontWeight: 'bold', marginTop: 20, marginBottom: 10 },
-  input: { borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 12, marginBottom: 12, fontSize: 16 },
-  button: { backgroundColor: '#2196F3', padding: 15, borderRadius: 8, alignItems: 'center' },
-  buttonText: { color: 'white', fontWeight: 'bold', fontSize: 16 },
-  item: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee'
+  container: {
+    flex: 1,
+    padding: 20,
+    backgroundColor: '#F2F4F8'
   },
-  itemName: { fontSize: 16, fontWeight: '500' },
-  itemPrice: { fontSize: 14, color: '#666' },
-  deleteText: { color: '#FF5252', fontWeight: 'bold' }
+
+  title: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginBottom: 15,
+    color: '#6A1B2E'
+  },
+
+  form: {
+    backgroundColor: 'white',
+    padding: 15,
+    borderRadius: 12,
+    marginBottom: 15,
+    elevation: 5
+  },
+
+  input: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    padding: 10,
+    marginBottom: 10,
+    borderRadius: 8
+  },
+
+  btnGuardar: {
+    backgroundColor: '#6A1B2E',
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center'
+  },
+
+  btnText: {
+    color: 'white',
+    fontWeight: 'bold'
+  },
+
+  tableHeader: {
+    flexDirection: 'row',
+    backgroundColor: '#6A1B2E',
+    padding: 10,
+    borderRadius: 6
+  },
+
+  th: {
+    flex: 1,
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 12
+  },
+
+  row: {
+    flexDirection: 'row',
+    backgroundColor: 'white',
+    padding: 10,
+    marginTop: 5,
+    borderRadius: 6,
+    alignItems: 'center'
+  },
+
+  td: {
+    flex: 1,
+    fontSize: 12
+  },
+
+  actions: {
+    flexDirection: 'row',
+    gap: 5
+  },
+
+  edit: {
+    backgroundColor: '#FFA000',
+    padding: 6,
+    borderRadius: 5
+  },
+
+  delete: {
+    backgroundColor: '#D32F2F',
+    padding: 6,
+    borderRadius: 5
+  },
+
+  actionText: {
+    color: 'white'
+  }
 });
