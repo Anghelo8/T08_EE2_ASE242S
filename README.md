@@ -1,50 +1,42 @@
-# Welcome to your Expo app 👋
+# 📱 Documentación de la Aplicación: Gestión de Clientes
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+## 1. Descripción de la Aplicación
+Esta aplicación es un sistema de gestión operativa enfocado en el modelo **CRUD (Create, Read, Update, Delete)**, desarrollada utilizando **React Native** y **Expo Router**. Su propósito es permitir a las empresas o emprendedores llevar un control centralizado de su base de datos de clientes, permitiendo registrar información vital como nombres, teléfonos, correos y direcciones de forma rápida y segura.
 
-## Get started
+---
 
-1. Install dependencies
+## 2. Pantallas Desarrolladas
+La arquitectura de la aplicación se divide en dos capas principales:
 
-   ```bash
-   npm install
-   ```
+* **Pantalla de Control (Index):** Actúa como el núcleo de navegación. Implementa un **Header personalizado** y un **Menú Lateral (Drawer Manual)** que permite alternar entre la gestión de clientes y otros módulos sin interrumpir el flujo de datos.
+* **Módulo de Clientes (CustomerCRUD):** Una interfaz de alta fidelidad que presenta un formulario de entrada optimizado y una lista de registros interactivos.
 
-2. Start the app
+> **[INSERTE AQUÍ SU CAPTURA DE PANTALLA]**
+> *Ejemplo: Captura del formulario con el fondo gris y tarjetas blancas.*
 
-   ```bash
-   npx expo start
-   ```
+---
 
-In the output, you'll find options to open the app in a
+## 3. Problemas Identificados durante Pruebas
+Durante la fase de validación y control de calidad, se identificaron los siguientes desafíos:
+1.  **Conflicto de Navegación:** Se detectó que el menú automático de la librería `expo-router/drawer` creaba una doble barra superior, confundiendo al usuario final.
+2.  **Vulnerabilidad en Integridad de Datos:** Inicialmente, el sistema permitía guardar nombres con caracteres numéricos y teléfonos con letras, lo que generaba "datos basura".
+3.  **Dificultad de Edición:** Los usuarios no tenían una forma clara de modificar un dato ya ingresado sin tener que borrarlo y volverlo a escribir.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+---
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## 4. Mejoras Aplicadas (Feedback e Iteración)
+Para resolver los problemas detectados, se aplicaron las siguientes mejoras técnicas:
+* **Validación Regex en Tiempo Real:** Se implementaron expresiones regulares (`/[0-9]/` para nombres y `/[^0-9]/` para teléfonos) que monitorean la entrada del usuario segundo a segundo.
+* **Feedback Visual de Error:** Se integró un sistema de **estilos condicionales**. Si el usuario comete un error, el campo se ilumina en rojo (`#FF5252`) y el botón de registro se deshabilita automáticamente.
+* **Sistema de Edición Rápida:** Se añadió la funcionalidad de "subir" los datos de la lista al formulario al tocar un registro, permitiendo actualizaciones rápidas mediante un estado de `editingId`.
+* **Confirmaciones de Seguridad:** Se integró el componente `Alert` de React Native para confirmar la eliminación de registros y evitar pérdidas accidentales.
 
-## Get a fresh project
+---
 
-When you're ready, run:
-
-```bash
-npm run reset-project
-```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## 5. Explicación de Decisiones de Diseño
+* **Estética Profesional:** Se optó por un diseño **Minimalista y Limpio**. El uso de fondos neutros (`#F4F7F6`) y tarjetas blancas con sombras (`elevation: 4`) ayuda a reducir la carga cognitiva del usuario.
+* **Paleta de Colores Semántica:** * **Verde (#4CAF50):** Utilizado para el botón principal, representando "Éxito" y "Acción".
+    * **Rojo (#FF5252):** Reservado exclusivamente para errores y borrado, indicando "Precaución".
+    * **Gris/Blanco:** Para el cuerpo de la aplicación, garantizando legibilidad.
+* **Accesibilidad Móvil:** Se configuró el `keyboardType` según el campo (numérico para teléfonos, email-address para correos) para facilitar la escritura en dispositivos físicos.
+* **Estructura de Componentes:** Se utilizó el componente `FlatList` en lugar de `ScrollView` para garantizar que la aplicación sea fluida incluso si la lista de clientes crece a cientos de registros.
