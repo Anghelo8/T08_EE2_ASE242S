@@ -11,8 +11,7 @@ La arquitectura de la aplicación se divide en dos capas principales:
 * **Pantalla de Control (Index):** Actúa como el núcleo de navegación. Implementa un **Header personalizado** y un **Menú Lateral (Drawer Manual)** que permite alternar entre la gestión de clientes y otros módulos sin interrumpir el flujo de datos.
 * **Módulo de Clientes (CustomerCRUD):** Una interfaz de alta fidelidad que presenta un formulario de entrada optimizado y una lista de registros interactivos.
 
-> **[INSERTE AQUÍ SU CAPTURA DE PANTALLA]**
-> *Ejemplo: Captura del formulario con el fondo gris y tarjetas blancas.*
+<img width="958" height="320" alt="{CF6F4804-41A1-49D5-874A-0EE032F556AC}" src="https://github.com/user-attachments/assets/b5c67ea6-6e0d-479c-afee-35c06440d425" />
 
 ---
 
