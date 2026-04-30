@@ -1,64 +1,60 @@
 import React, { useState } from 'react';
-import { View, Text, Pressable, StyleSheet, Animated, Dimensions } from 'react-native';
+import { View, Text, Pressable, StyleSheet, Dimensions } from 'react-native';
+
+// IMPORTAMOS TUS ARCHIVOS ESPECÍFICOS
+import CustomerCRUD from '../customer';
+import ProductCRUD from '../product';
 
 const { width } = Dimensions.get('window');
 
 export default function Index() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [modulo, setModulo] = useState('clientes'); // Controla qué CRUD mostrar
+  const [modulo, setModulo] = useState('clientes'); // Estado para saber qué mostrar
 
   return (
     <View style={styles.container}>
-      {/* --- HEADER PERSONALIZADO --- */}
+
+      {/* HEADER CON BOTÓN PARA EL MENÚ */}
       <View style={styles.header}>
         <Pressable onPress={() => setMenuOpen(true)} style={styles.menuButton}>
           <Text style={styles.menuIcon}>☰</Text>
         </Pressable>
         <Text style={styles.headerTitle}>
-          {modulo === 'clientes' ? 'Gestión de Clientes' : 'Inventario Productos'}
+          {modulo === 'clientes' ? 'Panel: Clientes' : 'Panel: Productos'}
         </Text>
       </View>
 
-      {/* --- CONTENIDO PRINCIPAL (Aquí cambias de CRUD) --- */}
+      {/* AQUÍ SE MUESTRA EL ARCHIVO CORRESPONDIENTE */}
       <View style={styles.content}>
         {modulo === 'clientes' ? (
-          <Text>Aquí va tu código de CLIENTES</Text>
+          <CustomerCRUD />
         ) : (
-          <Text>Aquí va tu código de PRODUCTOS</Text>
+          <ProductCRUD />
         )}
       </View>
 
-      {/* --- MENÚ LATERAL (OVERLAY) --- */}
+      {/* MENÚ LATERAL (Sólo se ve si menuOpen es true) */}
       {menuOpen && (
-        <Pressable
-          style={styles.overlay}
-          onPress={() => setMenuOpen(false)}
-        >
+        <View style={styles.overlay}>
+          <Pressable style={styles.backdrop} onPress={() => setMenuOpen(false)} />
           <View style={styles.sideMenu}>
             <Text style={styles.menuTitle}>Menú</Text>
 
             <Pressable
-              style={styles.menuItem}
+              style={[styles.menuItem, modulo === 'clientes' && styles.active]}
               onPress={() => { setModulo('clientes'); setMenuOpen(false); }}
             >
-              <Text style={styles.menuItemText}>👥 Clientes</Text>
+              <Text style={styles.menuItemText}>👥 Gestión de Clientes</Text>
             </Pressable>
 
             <Pressable
-              style={styles.menuItem}
+              style={[styles.menuItem, modulo === 'productos' && styles.active]}
               onPress={() => { setModulo('productos'); setMenuOpen(false); }}
             >
-              <Text style={styles.menuItemText}>📦 Productos</Text>
-            </Pressable>
-
-            <Pressable
-              style={[styles.menuItem, {marginTop: 20}]}
-              onPress={() => setMenuOpen(false)}
-            >
-              <Text style={{color: 'red'}}>Cerrar X</Text>
+              <Text style={styles.menuItemText}>📦 Gestión de Productos</Text>
             </Pressable>
           </View>
-        </Pressable>
+        </View>
       )}
     </View>
   );
@@ -67,36 +63,30 @@ export default function Index() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
   header: {
-    height: 90,
-    paddingTop: 40,
+    height: 100,
+    paddingTop: 50,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#4CAF50',
-    paddingHorizontal: 15
+    backgroundColor: '#333',
+    paddingHorizontal: 20,
   },
-  menuButton: { padding: 10 },
-  menuIcon: { fontSize: 24, color: 'white' },
+  menuButton: { padding: 5 },
+  menuIcon: { fontSize: 28, color: 'white' },
   headerTitle: { color: 'white', fontSize: 18, fontWeight: 'bold', marginLeft: 15 },
-  content: { flex: 1, padding: 20 },
+  content: { flex: 1 },
 
-  // Estilos del Menú Lateral Manual
-  overlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.5)', // Fondo oscuro transparente
-    zIndex: 10,
-  },
+  // Estilos del Drawer Manual
+  overlay: { position: 'absolute', width: '100%', height: '100%', zIndex: 100 },
+  backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.6)' },
   sideMenu: {
-    width: width * 0.7, // 70% de la pantalla
+    width: width * 0.75,
     height: '100%',
     backgroundColor: 'white',
-    padding: 20,
-    paddingTop: 50,
+    padding: 30,
+    paddingTop: 60,
   },
-  menuTitle: { fontSize: 22, fontWeight: 'bold', marginBottom: 30 },
-  menuItem: { paddingVertical: 15, borderBottomWidth: 1, borderBottomColor: '#eee' },
-  menuItemText: { fontSize: 18 }
+  menuTitle: { fontSize: 24, fontWeight: 'bold', marginBottom: 30 },
+  menuItem: { padding: 15, borderRadius: 10, marginBottom: 10 },
+  active: { backgroundColor: '#E8F5E9' },
+  menuItemText: { fontSize: 16, color: '#333' }
 });
