@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
 import { View, Text, Pressable, StyleSheet, Dimensions, Platform } from 'react-native';
 
-// IMPORTACIÓN DE TUS CRUDs (Ajusta la ruta si es necesario)
+// IMPORTACIÓN DE TUS COMPONENTES
 import CustomerCRUD from '../customer';
 import ProductCRUD from '../product';
+import Dashboard from '../dashboard'; // Asegúrate de haber creado este archivo
 
 const { width } = Dimensions.get('window');
 
 export default function Index() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [modulo, setModulo] = useState('clientes'); // 'clientes' o 'productos'
+  const [modulo, setModulo] = useState('dashboard'); // 'dashboard', 'clientes' o 'productos'
 
   return (
     <View style={styles.container}>
@@ -20,20 +21,19 @@ export default function Index() {
           <Text style={styles.menuIcon}>☰</Text>
         </Pressable>
         <Text style={styles.headerTitle}>
-          {modulo === 'clientes' ? 'Gestión de Clientes' : 'Inventario Productos'}
+          {modulo === 'dashboard' ? 'Panel de Control' :
+           modulo === 'clientes' ? 'Gestión de Clientes' : 'Inventario Productos'}
         </Text>
       </View>
 
-      {/* --- CONTENIDO PRINCIPAL --- */}
+      {/* --- CONTENIDO PRINCIPAL DINÁMICO --- */}
       <View style={styles.content}>
-        {modulo === 'clientes' ? (
-          <CustomerCRUD />
-        ) : (
-          <ProductCRUD />
-        )}
+        {modulo === 'dashboard' && <Dashboard totalClientes={12} totalProductos={45} />}
+        {modulo === 'clientes' && <CustomerCRUD />}
+        {modulo === 'productos' && <ProductCRUD />}
       </View>
 
-      {/* --- MENÚ LATERAL DESPLEGABLE (EL NEGRO) --- */}
+      {/* --- MENÚ LATERAL DESPLEGABLE --- */}
       {menuOpen && (
         <View style={styles.fullOverlay}>
           {/* Fondo oscuro para cerrar al tocar fuera */}
@@ -42,6 +42,15 @@ export default function Index() {
           <View style={styles.sideMenu}>
             <Text style={styles.menuTitle}>Menú Principal</Text>
 
+            {/* BOTÓN DASHBOARD */}
+            <Pressable
+              style={[styles.menuItem, modulo === 'dashboard' && styles.menuItemActive]}
+              onPress={() => { setModulo('dashboard'); setMenuOpen(false); }}
+            >
+              <Text style={styles.menuItemText}>📊 Dashboard</Text>
+            </Pressable>
+
+            {/* BOTÓN CLIENTES */}
             <Pressable
               style={[styles.menuItem, modulo === 'clientes' && styles.menuItemActive]}
               onPress={() => { setModulo('clientes'); setMenuOpen(false); }}
@@ -49,6 +58,7 @@ export default function Index() {
               <Text style={styles.menuItemText}>👥 Clientes</Text>
             </Pressable>
 
+            {/* BOTÓN PRODUCTOS */}
             <Pressable
               style={[styles.menuItem, modulo === 'productos' && styles.menuItemActive]}
               onPress={() => { setModulo('productos'); setMenuOpen(false); }}
@@ -75,7 +85,7 @@ const styles = StyleSheet.create({
     paddingTop: Platform.OS === 'ios' ? 50 : 30,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1A1A1A', // Fondo negro puro
+    backgroundColor: '#1A1A1A',
     paddingHorizontal: 20,
     elevation: 5,
   },
@@ -84,7 +94,6 @@ const styles = StyleSheet.create({
   headerTitle: { color: 'white', fontSize: 20, fontWeight: 'bold', marginLeft: 15 },
   content: { flex: 1 },
 
-  // Estilos del Menú Desplegable
   fullOverlay: {
     position: 'absolute',
     top: 0,
@@ -95,7 +104,7 @@ const styles = StyleSheet.create({
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.7)', // Oscurece el fondo
+    backgroundColor: 'rgba(0,0,0,0.7)',
   },
   sideMenu: {
     width: width * 0.75,
@@ -113,9 +122,15 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     paddingHorizontal: 15,
     borderRadius: 12,
-    marginBottom: 10
+    marginBottom: 10,
+    flexDirection: 'row',
+    alignItems: 'center'
   },
-  menuItemActive: { backgroundColor: '#E8F5E9' },
+  menuItemActive: {
+    backgroundColor: '#F0F0F0',
+    borderLeftWidth: 5,
+    borderLeftColor: '#1A1A1A'
+  },
   menuItemText: { fontSize: 18, color: '#333', fontWeight: '500' },
   footerMenu: { marginTop: 'auto', marginBottom: 30 },
   closeButton: { padding: 15, alignItems: 'center', borderTopWidth: 1, borderColor: '#EEE' },

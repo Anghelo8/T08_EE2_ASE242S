@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Pressable, FlatList, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TextInput, Pressable, FlatList, StyleSheet, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 
 interface Customer {
   id: string;
@@ -16,31 +16,43 @@ export default function CustomerCRUD() {
   const [address, setAddress] = useState('');
   const [customers, setCustomers] = useState<Customer[]>([]);
 
-  // Función para verificar si el nombre tiene números
-  const nameHasError = () => {
-    const nameRegex = /[0-9]/; // Detecta si hay CUALQUIER número
-    return nameRegex.test(name);
-  };
+  // ESTADO PARA SABER SI ESTAMOS EDITANDO
+  const [editingId, setEditingId] = useState<string | null>(null);
 
-  // Función para verificar si el teléfono tiene letras
-  const phoneHasError = () => {
-    const phoneRegex = /[^0-9]/; // Detecta si hay CUALQUIER cosa que NO sea número
-    return phoneRegex.test(phone);
-  };
+  const nameHasError = () => /[0-9]/.test(name);
+  const phoneHasError = () => /[^0-9]/.test(phone);
 
-  const addCustomer = () => {
-    // Solo permite agregar si no hay errores y los campos obligatorios están llenos
-    if (!nameHasError() && !phoneHasError() && name.trim() && phone.trim() && email.trim()) {
-      const newCustomer: Customer = {
-        id: Date.now().toString(),
-        name: name.trim(),
-        phone: phone.trim(),
-        email: email.trim(),
-        address: address.trim()
-      };
-      setCustomers([newCustomer, ...customers]);
+  const handleSubmit = () => {
+    if (!nameHasError() && !phoneHasError() && name.trim() && phone.trim()) {
+      if (editingId) {
+        // LÓGICA DE EDITAR
+        setCustomers(customers.map(c =>
+          c.id === editingId ? { ...c, name, phone, email, address } : c
+        ));
+        setEditingId(null);
+      } else {
+        // LÓGICA DE AGREGAR
+        const newCustomer = { id: Date.now().toString(), name, phone, email, address };
+        setCustomers([newCustomer, ...customers]);
+      }
+      // Limpiar campos
       setName(''); setPhone(''); setEmail(''); setAddress('');
     }
+  };
+
+  const deleteCustomer = (id: string) => {
+    Alert.alert("Eliminar", "¿Estás seguro?", [
+      { text: "No" },
+      { text: "Sí", onPress: () => setCustomers(customers.filter(c => c.id !== id)) }
+    ]);
+  };
+
+  const prepareEdit = (item: Customer) => {
+    setEditingId(item.id);
+    setName(item.name);
+    setPhone(item.phone);
+    setEmail(item.email);
+    setAddress(item.address);
   };
 
   return (
@@ -50,9 +62,8 @@ export default function CustomerCRUD() {
         keyExtractor={(item) => item.id}
         ListHeaderComponent={
           <View style={styles.formCard}>
-            <Text style={styles.title}>Nuevo Registro</Text>
+            <Text style={styles.title}>{editingId ? 'Editando Cliente' : 'Nuevo Registro'}</Text>
 
-            {/* CAMPO NOMBRE */}
             <Text style={styles.label}>Nombre Completo</Text>
             <TextInput
               style={[styles.input, nameHasError() && styles.inputError]}
@@ -62,7 +73,6 @@ export default function CustomerCRUD() {
             />
             {nameHasError() && <Text style={styles.errorText}>⚠️ El nombre no debe contener números</Text>}
 
-            {/* FILA TELÉFONO Y CORREO */}
             <View style={styles.row}>
               <View style={{ flex: 1, marginRight: 10 }}>
                 <Text style={styles.label}>Teléfono</Text>
@@ -75,45 +85,37 @@ export default function CustomerCRUD() {
                 />
                 {phoneHasError() && <Text style={styles.errorText}>⚠️ Solo números</Text>}
               </View>
-
               <View style={{ flex: 1.5 }}>
                 <Text style={styles.label}>Correo</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="correo@ejemplo.com"
-                  value={email}
-                  onChangeText={setEmail}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                />
+                <TextInput style={styles.input} placeholder="correo@mail.com" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
               </View>
             </View>
 
-            {/* CAMPO DIRECCIÓN */}
-            <Text style={styles.label}>Dirección</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Dirección de casa"
-              value={address}
-              onChangeText={setAddress}
-            />
-
             <Pressable
-              style={[styles.button, (nameHasError() || phoneHasError() || !name) && styles.buttonDisabled]}
-              onPress={addCustomer}
+              style={[styles.button, (nameHasError() || phoneHasError() || !name) && styles.buttonDisabled, editingId && {backgroundColor: '#2196F3'}]}
+              onPress={handleSubmit}
               disabled={nameHasError() || phoneHasError() || !name}
             >
-              <Text style={styles.buttonText}>Registrar Cliente</Text>
+              <Text style={styles.buttonText}>{editingId ? 'Actualizar Datos' : 'Registrar Cliente'}</Text>
             </Pressable>
+
+            {editingId && (
+              <Pressable style={{marginTop: 10}} onPress={() => {setEditingId(null); setName(''); setPhone(''); setEmail(''); setAddress('');}}>
+                <Text style={{textAlign: 'center', color: '#666'}}>Cancelar Edición</Text>
+              </Pressable>
+            )}
           </View>
         }
         renderItem={({ item }) => (
           <View style={styles.itemCard}>
-            <View style={{ flex: 1 }}>
+            <Pressable style={{ flex: 1 }} onPress={() => prepareEdit(item)}>
               <Text style={styles.itemName}>{item.name}</Text>
               <Text style={styles.itemSub}>📞 {item.phone} | ✉️ {item.email}</Text>
-              {item.address ? <Text style={styles.itemAddr}>📍 {item.address}</Text> : null}
-            </View>
+            </Pressable>
+
+            <Pressable onPress={() => deleteCustomer(item.id)} style={styles.deleteBtn}>
+              <Text style={{fontSize: 20}}>🗑️</Text>
+            </Pressable>
           </View>
         )}
         contentContainerStyle={{ padding: 20 }}
@@ -127,35 +129,15 @@ const styles = StyleSheet.create({
   formCard: { backgroundColor: 'white', padding: 20, borderRadius: 16, elevation: 4, marginBottom: 20 },
   title: { fontSize: 18, fontWeight: 'bold', marginBottom: 15, color: '#333' },
   label: { fontSize: 13, fontWeight: '600', color: '#666', marginBottom: 5 },
-  input: {
-    backgroundColor: '#FAFAFA',
-    borderRadius: 10,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: '#DDD',
-    fontSize: 15,
-    marginBottom: 5
-  },
-  inputError: {
-    borderColor: '#FF5252',
-    backgroundColor: '#FFF5F5', // Fondo rosado suave si hay error
-    borderWidth: 2
-  },
+  input: { backgroundColor: '#FAFAFA', borderRadius: 10, padding: 12, borderWidth: 1, borderColor: '#DDD', fontSize: 15, marginBottom: 5 },
+  inputError: { borderColor: '#FF5252', backgroundColor: '#FFF5F5', borderWidth: 2 },
   errorText: { color: '#FF5252', fontSize: 11, fontWeight: 'bold', marginBottom: 10 },
   row: { flexDirection: 'row', marginBottom: 10 },
   button: { backgroundColor: '#4CAF50', padding: 16, borderRadius: 12, alignItems: 'center', marginTop: 10 },
   buttonDisabled: { backgroundColor: '#CCC' },
   buttonText: { color: 'white', fontWeight: 'bold' },
-  itemCard: {
-    backgroundColor: 'white',
-    padding: 15,
-    borderRadius: 12,
-    marginBottom: 10,
-    borderLeftWidth: 6,
-    borderLeftColor: '#4CAF50',
-    elevation: 2
-  },
+  itemCard: { backgroundColor: 'white', padding: 15, borderRadius: 12, marginBottom: 10, borderLeftWidth: 6, borderLeftColor: '#4CAF50', elevation: 2, flexDirection: 'row', alignItems: 'center' },
+  deleteBtn: { padding: 10, marginLeft: 10 },
   itemName: { fontSize: 16, fontWeight: 'bold' },
-  itemSub: { fontSize: 13, color: '#666' },
-  itemAddr: { fontSize: 12, color: '#999', marginTop: 5 }
+  itemSub: { fontSize: 13, color: '#666' }
 });
